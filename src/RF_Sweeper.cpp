@@ -149,8 +149,8 @@ void RFSweeper::handleJammer() {
     size_t channelSetSize = _getCurrentChannelSetSize();
 
     if (channelSetSize > 0) {
-        int ch1 = channelSet[_hopIndex];
-        int ch2 = _isDualMode ? channelSet[channelSetSize - 1 - _hopIndex] : -1;
+        int ch1 = channelSet[_channelHopIndex];
+        int ch2 = _isDualMode ? channelSet[channelSetSize - 1 - _channelHopIndex] : -1;
 
         if (_currentConfig.technique == JammingTechnique::NOISE_INJECTION) {
             jamWithNoise(ch1, ch2);
@@ -158,7 +158,7 @@ void RFSweeper::handleJammer() {
             jamWithConstantCarrier(ch1, ch2);
         }
 
-        _hopIndex = (_hopIndex + 1) % channelSetSize;
+        _channelHopIndex = (_channelHopIndex + 1) % channelSetSize;
     }
 }
 
