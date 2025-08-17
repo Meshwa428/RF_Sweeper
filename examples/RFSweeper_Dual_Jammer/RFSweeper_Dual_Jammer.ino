@@ -29,7 +29,7 @@ void setup() {
   config.technique = JammingTechnique::CONSTANT_CARRIER;
   
   Serial.println("Starting Full Spectrum Jammer...");
-  if (sweeper.startJammer(JammerMode::FULL_SPECTRUM, config)) {
+  if (sweeper.startJammer(JammingMode::FULL_SPECTRUM, config)) {
     Serial.printf("Jammer started successfully in %s mode.\n", sweeper.getModeString());
   } else {
     Serial.println("Failed to start jammer.");

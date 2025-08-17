@@ -28,7 +28,7 @@ void setup() {
   }
 
   Serial.println("Starting Wi-Fi Jammer by default...");
-  sweeper.startJammer(JammerMode::WIFI);
+  sweeper.startJammer(JammingMode::WIFI);
 }
 
 void loop() {
@@ -47,19 +47,19 @@ void loop() {
     switch(cmd) {
       case 'w':
         Serial.println("Starting Wi-Fi Jammer.");
-        sweeper.startJammer(JammerMode::WIFI);
+        sweeper.startJammer(JammingMode::WIFI);
         break;
       case 'b':
         Serial.println("Starting BLE Advertising Jammer.");
-        sweeper.startJammer(JammerMode::BLE_ADVERTISING);
+        sweeper.startJammer(JammingMode::BLE_ADVERTISING);
         break;
       case 'f':
         Serial.println("Starting Full Spectrum Jammer.");
-        sweeper.startJammer(JammerMode::FULL_SPECTRUM);
+        sweeper.startJammer(JammingMode::FULL_SPECTRUM);
         break;
       case 'c':
         Serial.println("Starting Single Channel Jammer on channel 45.");
-        sweeper.startJammer(JammerMode::SINGLE_CHANNEL, 45);
+        sweeper.startJammer(JammingMode::SINGLE_CHANNEL, 45);
         break;
       case 's':
         Serial.println("Stopping jammer.");
