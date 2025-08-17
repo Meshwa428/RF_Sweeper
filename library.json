@@ -1,0 +1,17 @@
+{
+  "name": "RF_Sweeper",
+  "version": "1.0.0",
+  "description": "A library for NRF24L01+ spectrum analysis and jamming on ESP32.",
+  "keywords": "nrf24, spectrum, jammer, esp32, rf",
+  "authors": [
+    {
+      "name": "Meshwa",
+      "url": "https://github.com/Meshwa428/"
+    }
+  ],
+  "frameworks": "arduino",
+  "platforms": "espressif32",
+  "dependencies": {
+    "nrf24/RF24": "^1.4.11"
+  }
+}
