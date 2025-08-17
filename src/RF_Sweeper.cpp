@@ -47,8 +47,10 @@ RFSweeper::RFSweeper(uint8_t ce1, uint8_t csn1, uint8_t ce2, uint8_t csn2) :
 
 RFSweeper::~RFSweeper() {
     stopJammer();
+    _radio1.powerDown();
     delete _radio1;
     if (_radio2) {
+        _radio2.powerDown();
         delete _radio2;
     }
 }
@@ -103,7 +105,7 @@ bool RFSweeper::startJammer(JammingMode mode, JammerConfig config) {
     auto setupRadio = [&](RF24* radio) {
         if (!radio) return;
         radio->setPALevel(RF24_PA_MAX);
-        radio->setDataRate(RF24_2MBPS);
+        if (!radio->setDataRate(RF24_2MBPS)) Serial.println("Fail setting data Rate");
         if (config.technique == JammingTechnique::CONSTANT_CARRIER) {
             radio->startConstCarrier(RF24_PA_MAX, 45);
         } else {
