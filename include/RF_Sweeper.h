@@ -7,7 +7,6 @@
 #include <vector>
 
 #define SPECTRUM_CHANNELS 80
-#define SPI_SPEED_NRF 16000000
 
 // Enum for different jammer modes
 enum class JammingMode {
@@ -50,6 +49,8 @@ public:
     
     // Jammer
     bool startJammer(JammingMode mode, JammerConfig config = {});
+    // **FIX: Add overloaded function for simple single-channel jamming**
+    bool startJammer(JammingMode mode, uint8_t channel); 
     void stopJammer();
     void handleJammer(); // Non-blocking, call in loop()
     bool isJamming() const;

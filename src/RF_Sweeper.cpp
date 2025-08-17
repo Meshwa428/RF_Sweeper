@@ -88,6 +88,19 @@ uint8_t* RFSweeper::scanSpectrum() {
     return _spectrumData;
 }
 
+bool RFSweeper::startJammer(JammingMode mode, uint8_t channel) {
+    if (mode != JammingMode::SINGLE_CHANNEL) {
+        // This simplified function is only intended for SINGLE_CHANNEL mode.
+        // For other modes, the default config is fine.
+        return startJammer(mode, {});
+    }
+    
+    JammerConfig config;
+    config.technique = JammingTechnique::CONSTANT_CARRIER; // Default for single channel
+    config.customChannels.push_back(channel);
+    return startJammer(mode, config);
+}
+
 bool RFSweeper::startJammer(JammingMode mode, JammerConfig config) {
     if (_isJamming) return false;
 
