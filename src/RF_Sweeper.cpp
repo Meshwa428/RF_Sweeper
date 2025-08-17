@@ -47,10 +47,10 @@ RFSweeper::RFSweeper(uint8_t ce1, uint8_t csn1, uint8_t ce2, uint8_t csn2) :
 
 RFSweeper::~RFSweeper() {
     stopJammer();
-    _radio1.powerDown();
+    _radio1->powerDown();
     delete _radio1;
     if (_radio2) {
-        _radio2.powerDown();
+        _radio2->powerDown();
         delete _radio2;
     }
 }

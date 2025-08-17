@@ -7,7 +7,6 @@
 #include <vector>
 
 #define SPECTRUM_CHANNELS 80
-#define SPI_SPEED_NRF 16000000
 
 // Enum for different jammer modes
 enum class JammingMode {
@@ -70,7 +69,7 @@ private:
     bool _isJamming;
     JammingMode _currentMode;
     JammerConfig _currentConfig;
-    uint32_t _hopIndex;
+    uint32_t _channelHopIndex;
     uint8_t _singleChannelTarget;
 
     void jamWithNoise(int channel1, int channel2);
