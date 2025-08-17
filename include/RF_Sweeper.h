@@ -7,6 +7,7 @@
 #include <vector>
 
 #define SPECTRUM_CHANNELS 80
+#define SPI_SPEED_NRF 16000000
 
 // Enum for different jammer modes
 enum class JammingMode {
