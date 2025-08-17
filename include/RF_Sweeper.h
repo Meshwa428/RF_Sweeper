@@ -50,10 +50,9 @@ public:
     
     // Jammer
     bool startJammer(JammingMode mode, JammerConfig config = {});
-    // **FIX: Add overloaded function for simple single-channel jamming**
     bool startJammer(JammingMode mode, uint8_t channel); 
     void stopJammer();
-    void handleJammer(); // Non-blocking, call in loop()
+    void handleJammer(); // Non-blocking call, but function itself now contains a fast blocking loop
     bool isJamming() const;
     const char* getModeString() const;
 
@@ -72,7 +71,6 @@ private:
     bool _isJamming;
     JammingMode _currentMode;
     JammerConfig _currentConfig;
-    uint32_t _channelHopIndex;
     uint8_t _singleChannelTarget;
 
     void jamWithNoise(int channel1, int channel2);

@@ -31,7 +31,7 @@ RFSweeper::RFSweeper(uint8_t ce1, uint8_t csn1) :
     _radio1(new RF24(ce1, csn1, SPI_SPEED_NRF)), _radio2(nullptr),
     _cePin1(ce1), _csnPin1(csn1), _cePin2(0), _csnPin2(0),
     _isDualMode(false), _isJamming(false), _currentMode(JammingMode::IDLE),
-    _channelHopIndex(0), _singleChannelTarget(1)
+    _singleChannelTarget(1)
 {
     memset(_spectrumData, 0, sizeof(_spectrumData));
 }
@@ -40,7 +40,7 @@ RFSweeper::RFSweeper(uint8_t ce1, uint8_t csn1, uint8_t ce2, uint8_t csn2) :
     _radio1(new RF24(ce1, csn1, SPI_SPEED_NRF)), _radio2(new RF24(ce2, csn2, SPI_SPEED_NRF)),
     _cePin1(ce1), _csnPin1(csn1), _cePin2(ce2), _csnPin2(csn2),
     _isDualMode(true), _isJamming(false), _currentMode(JammingMode::IDLE),
-    _channelHopIndex(0), _singleChannelTarget(1)
+    _singleChannelTarget(1)
 {
     memset(_spectrumData, 0, sizeof(_spectrumData));
 }
@@ -62,10 +62,18 @@ bool RFSweeper::begin(SPIClass* spi) {
 
     if (_radio1) {
         success1 = _radio1->begin(_spi);
+        if (success1) {
+            _radio1->setPALevel(RF24_PA_MAX);
+            _radio1->setDataRate(RF24_2MBPS);
+        }
     }
     
     if (_isDualMode && _radio2) {
         success2 = _radio2->begin(_spi);
+        if (success2) {
+            _radio2->setPALevel(RF24_PA_MAX);
+            _radio2->setDataRate(RF24_2MBPS);
+        }
     }
 
     return success1 && success2;
@@ -90,8 +98,6 @@ uint8_t* RFSweeper::scanSpectrum() {
 
 bool RFSweeper::startJammer(JammingMode mode, uint8_t channel) {
     if (mode != JammingMode::SINGLE_CHANNEL) {
-        // This simplified function is only intended for SINGLE_CHANNEL mode.
-        // For other modes, the default config is fine.
         return startJammer(mode, {});
     }
     
@@ -102,12 +108,14 @@ bool RFSweeper::startJammer(JammingMode mode, uint8_t channel) {
 }
 
 bool RFSweeper::startJammer(JammingMode mode, JammerConfig config) {
-    if (_isJamming) return false;
+    if (_isJamming) {
+        stopJammer(); // Stop previous mode before starting new one
+        delay(5); // Small delay to allow radios to settle
+    }
 
     _isJamming = true;
     _currentMode = mode;
     _currentConfig = config;
-    _channelHopIndex = 0;
 
     if (mode == JammingMode::SINGLE_CHANNEL && !config.customChannels.empty()) {
         _singleChannelTarget = config.customChannels[0];
@@ -117,14 +125,14 @@ bool RFSweeper::startJammer(JammingMode mode, JammerConfig config) {
 
     auto setupRadio = [&](RF24* radio) {
         if (!radio) return;
-        radio->setPALevel(RF24_PA_MAX);
-        if (!radio->setDataRate(RF24_2MBPS)) Serial.println("Fail setting data Rate");
+        radio->powerUp(); // Ensure radio is powered up
         if (config.technique == JammingTechnique::CONSTANT_CARRIER) {
-            radio->startConstCarrier(RF24_PA_MAX, 45);
+            radio->startConstCarrier(RF24_PA_MAX, 45); // Initial channel doesn't matter, will be changed in loop
         } else {
             byte dummy_addr[5] = {0xE7, 0xE7, 0xE7, 0xE7, 0xE7};
             radio->openWritingPipe(dummy_addr);
             radio->setPayloadSize(sizeof(jam_text));
+            radio->stopListening();
         }
     };
     
@@ -146,6 +154,7 @@ void RFSweeper::stopJammer() {
         if (_radio1) _radio1->stopConstCarrier();
         if (_radio2) _radio2->stopConstCarrier();
     }
+    // Power down to ensure radio is in a known low-power state
     if (_radio1) _radio1->powerDown();
     if (_radio2) _radio2->powerDown();
     
@@ -162,16 +171,20 @@ void RFSweeper::handleJammer() {
     size_t channelSetSize = _getCurrentChannelSetSize();
 
     if (channelSetSize > 0) {
-        int ch1 = channelSet[_channelHopIndex];
-        int ch2 = _isDualMode ? channelSet[channelSetSize - 1 - _channelHopIndex] : -1;
+        // *** BEGIN MODIFICATION ***
+        // Instead of hopping to a single channel, rapidly sweep through the entire list.
+        for (size_t i = 0; i < channelSetSize; ++i) {
+            int ch1 = channelSet[i];
+            // In dual mode, the second radio sweeps from the other end of the list for bracketing.
+            int ch2 = _isDualMode ? channelSet[channelSetSize - 1 - i] : -1;
 
-        if (_currentConfig.technique == JammingTechnique::NOISE_INJECTION) {
-            jamWithNoise(ch1, ch2);
-        } else {
-            jamWithConstantCarrier(ch1, ch2);
+            if (_currentConfig.technique == JammingTechnique::NOISE_INJECTION) {
+                jamWithNoise(ch1, ch2);
+            } else { // CONSTANT_CARRIER
+                jamWithConstantCarrier(ch1, ch2);
+            }
         }
-
-        _channelHopIndex = (_channelHopIndex + 1) % channelSetSize;
+        // *** END MODIFICATION ***
     }
 }
 
